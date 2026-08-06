@@ -320,19 +320,17 @@ function sendToKakao() {
     }
 
     // 3. 로그인 및 전송
-    if (!Kakao.Auth.getAccessToken()) {
-        Kakao.Auth.login({
-            scope: 'talk_message',
-            success: function() {
-                executeSend();
-            },
-            fail: function(err) {
-                alert('카카오 로그인 실패: ' + JSON.stringify(err));
-            }
-        });
-    } else {
-        executeSend();
-    }
+    // 항상 talk_message 권한 동의창이 뜨도록 처리
+    Kakao.Auth.login({
+        scope: 'talk_message',
+        success: function(authObj) {
+            executeSend();
+        },
+        fail: function(err) {
+            alert('카카오 로그인 실패: ' + JSON.stringify(err));
+        }
+    });
+    
 }
 
 function executeSend() {
