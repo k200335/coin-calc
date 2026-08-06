@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>코인선물 손익 & 청산가 계산기 v5</title>
+    <!-- 카카오 SDK 로드 -->
+    <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" integrity="sha384-TiC35AZKXV3/Lu91X8ZXLinBZIB3T8UXAX63hRXlX1uf2NRQ6073LTPUK662/m4k" crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --bg-color: #121318;
+            --card-bg: #1e2026;
+            --input-bg: #2b2f36;
+            --text-color: #eaeaea;
+            --accent-green: #0ecb81;
+            --accent-red: #f6465d;
+            --border-color: #363a45;
+            --kakao-yellow: #FEE500;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 16px;
+        }
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        h2 {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #f0b90b;
+            margin-bottom: 20px;
+        }
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border-color);
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #848e9c;
+        }
+        .form-group {
+            margin-bottom: 12px;
+        }
+        label {
+            display: block;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+            color: #b7bdc6;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: #fff;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        .row {
+            display: flex;
+            gap: 10px;
+        }
+        .row > div {
+            flex: 1;
+        }
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #2b2f36;
+            font-size: 0.9rem;
+        }
+        .result-row:last-child {
+            border-bottom: none;
+        }
+        .val-green { color: var(--accent-green); font-weight: bold; }
+        .val-red { color: var(--accent-red); font-weight: bold; }
+        .val-highlight { color: #f0b90b; font-weight: bold; }
+        
+        .btn-kakao {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--kakao-yellow);
+            color: #000000;
+            font-weight: bold;
+            font-size: 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-kakao:active {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>🪙 코인선물 손익 & 청산가 계산기</h2>
+
+    <!-- 1. 통화 설정 -->
+    <div class="card">
+        <div class="card-title">1. 통화 및 자산 설정</div>
+        <div class="row">
+            <div class="form-group">
+                <label>통화 선택</label>
+                <select id="currency" onchange="calculate()">
+                    <option value="USDT">USDT ($)</option>
+                    <option value="KRW">KRW (원)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>적용 환율 (KRW/USD)</label>
+                <input type="number" id="rate" value="1428.18" oninput="calculate()">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>총자산 ($)</label>
+            <input type="number" id="totalAsset" value="31.36" oninput="calculate()">
+        </div>
+    </div>
+
+    <!-- 2. 매매 변수 입력 -->
+    <div class="card">
+        <div class="card-title">2. 매매 변수 입력</div>
+        <div class="form-group">
+            <label>포지션 방향</label>
+            <select id="position" onchange="calculate()">
+                <option value="Short">숏 (Short)</option>
+                <option value="Long">롱 (Long)</option>
+            </select>
+        </div>
+        <div class="row">
+            <div class="form-group">
+                <label>투입 증거금</label>
+                <input type="number" id="margin" value="10" oninput="calculate()">
+            </div>
+            <div class="form-group">
+                <label>레버리지 (배)</label>
+                <input type="number" id="leverage" value="20" oninput="calculate()">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>진입 예상가</label>
+            <input type="number" id="entry" value="0.3171" step="any" oninput="calculate()">
+        </div>
+        <div class="row">
+            <div class="form-group">
+                <label>손절가 (Stop-Loss)</label>
+                <input type="number" id="stopLoss" value="0.319" step="any" oninput="calculate()">
+            </div>
+            <div class="form-group">
+                <label>목표가 (Take-Profit)</label>
+                <input type="number" id="takeProfit" value="0.3055" step="any" oninput="calculate()">
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. 계산 결과 -->
+    <div class="card">
+        <div class="card-title">3. 계산 결과</div>
+        <div class="result-row">
+            <span>포지션 총 규모</span>
+            <span id="posValue">-</span>
+        </div>
+        <div class="result-row">
+            <span>증거금 비중</span>
+            <span id="marginRatio">-</span>
+        </div>
+        <div class="result-row">
+            <span>손절 폭 / 익절 폭</span>
+            <span id="slTpPct">-</span>
+        </div>
+        <div class="result-row">
+            <span>손익비 (Risk : Reward)</span>
+            <span id="rrRatio" class="val-highlight">-</span>
+        </div>
+        <div class="result-row">
+            <span>손절 시 손실금액</span>
+            <span id="slAmount" class="val-red">-</span>
+        </div>
+        <div class="result-row">
+            <span>손실률 (리스크)</span>
+            <span id="slRoe" class="val-red">-</span>
+        </div>
+        <div class="result-row">
+            <span>예상 수익금액</span>
+            <span id="tpAmount" class="val-green">-</span>
+        </div>
+        <div class="result-row">
+            <span>수익률 (ROE)</span>
+            <span id="tpRoe" class="val-green">-</span>
+        </div>
+        <div class="result-row">
+            <span>예상 청산 가격 (Liq. Price)</span>
+            <span id="liqPrice" class="val-red">-</span>
+        </div>
+        <div class="result-row">
+            <span>청산까지 거리</span>
+            <span id="liqDist">-</span>
+        </div>
+    </div>
+
+    <!-- 4. 카톡 전송 버튼 -->
+    <button class="btn-kakao" onclick="sendToKakao()">💬 내 카카오톡으로 결과 전송</button>
+</div>
+
+<script>
+let calcResultData = {};
+
+function calculate() {
+    const currency = document.getElementById('currency').value;
+    const rate = parseFloat(document.getElementById('rate').value) || 0;
+    const totalAsset = parseFloat(document.getElementById('totalAsset').value) || 0;
+    const position = document.getElementById('position').value;
+    const margin = parseFloat(document.getElementById('margin').value) || 0;
+    const leverage = parseFloat(document.getElementById('leverage').value) || 0;
+    const entry = parseFloat(document.getElementById('entry').value) || 0;
+    const stopLoss = parseFloat(document.getElementById('stopLoss').value) || 0;
+    const takeProfit = parseFloat(document.getElementById('takeProfit').value) || 0;
+
+    const symbol = currency === 'KRW' ? '원' : '$';
+    
+    // 계산 로직
+    const posValue = margin * leverage;
+    const marginRatio = totalAsset > 0 ? (margin / totalAsset * 100).toFixed(2) + '%' : '-';
+    
+    const slPct = entry > 0 ? Math.abs(entry - stopLoss) / entry : 0;
+    const tpPct = entry > 0 ? Math.abs(takeProfit - entry) / entry : 0;
+    const rrRatio = slPct > 0 ? (tpPct / slPct).toFixed(2) : '0';
+
+    const slAmount = posValue * slPct;
+    const slAmountKrw = currency === 'KRW' ? slAmount : slAmount * rate;
+    const slRoe = margin > 0 ? (slAmount / margin * 100).toFixed(2) : 0;
+
+    const tpAmount = posValue * tpPct;
+    const tpAmountKrw = currency === 'KRW' ? tpAmount : tpAmount * rate;
+    const tpRoe = margin > 0 ? (tpAmount / margin * 100).toFixed(2) : 0;
+
+    // 청산가 (MMR 0.5% 반영)
+    let liqPrice = 0;
+    if (leverage > 0 && entry > 0) {
+        if (position === 'Long') {
+            liqPrice = entry * (1 - 1/leverage + 0.005);
+        } else {
+            liqPrice = entry * (1 + 1/leverage - 0.005);
+        }
+    }
+    const liqDist = entry > 0 ? (Math.abs(liqPrice - entry) / entry * 100).toFixed(2) : 0;
+
+    // 화면 출력
+    document.getElementById('posValue').innerText = `${posValue.toLocaleString()} ${symbol}`;
+    document.getElementById('marginRatio').innerText = marginRatio;
+    document.getElementById('slTpPct').innerText = `${(slPct*100).toFixed(2)}% / ${(tpPct*100).toFixed(2)}%`;
+    document.getElementById('rrRatio').innerText = `1 : ${rrRatio}`;
+    document.getElementById('slAmount').innerText = `-${slAmount.toLocaleString(undefined, {maximumFractionDigits: 2})} ${symbol} (약 -${Math.round(slAmountKrw).toLocaleString()}원)`;
+    document.getElementById('slRoe').innerText = `-${slRoe}%`;
+    document.getElementById('tpAmount').innerText = `+${tpAmount.toLocaleString(undefined, {maximumFractionDigits: 2})} ${symbol} (약 +${Math.round(tpAmountKrw).toLocaleString()}원)`;
+    document.getElementById('tpRoe').innerText = `+${tpRoe}%`;
+    document.getElementById('liqPrice').innerText = liqPrice.toFixed(4);
+    document.getElementById('liqDist').innerText = `${liqDist}%`;
+
+    // 카톡 전송용 데이터 저장
+    calcResultData = {
+        position: position,
+        margin: `${margin}${symbol}`,
+        leverage: `${leverage}배`,
+        entry: entry,
+        stopLoss: stopLoss,
+        takeProfit: takeProfit,
+        rrRatio: `1 : ${rrRatio}`,
+        slAmount: `-${slAmount.toFixed(2)}${symbol} (-${slRoe}%)`,
+        tpAmount: `+${tpAmount.toFixed(2)}${symbol} (+${tpRoe}%)`,
+        liqPrice: liqPrice.toFixed(4)
+    };
+}
+
+// 카카오 초기화 예외 처리
+function initKakao() {
+    try {
+        if (typeof Kakao !== 'undefined' && !Kakao.isInitialized()) {
+            Kakao.init('d2208aa43219860b96d70ef73ae6d4b3');
+        }
+    } catch (e) {
+        console.log("카카오 SDK 초기화 대기 중:", e);
+    }
+}
+
+function sendToKakao() {
+    initKakao();
+
+    if (typeof Kakao === 'undefined' || !Kakao.isInitialized()) {
+        alert('카카오 API 연결 설정(도메인 등록)이 필요합니다.');
+        return;
+    }
+
+    if (!Kakao.Auth.getAccessToken()) {
+        Kakao.Auth.login({
+            scope: 'talk_message',
+            success: function() {
+                executeSend();
+            },
+            fail: function(err) {
+                alert('카카오 로그인에 실패했습니다: ' + JSON.stringify(err));
+            }
+        });
+    } else {
+        executeSend();
+    }
+}
+
+function executeSend() {
+    const textMsg = `📊 [선물 매매 일지 기록]\n\n` +
+        `• 포지션: ${calcResultData.position} (${calcResultData.leverage})\n` +
+        `• 투입증거금: ${calcResultData.margin}\n` +
+        `• 진입가: ${calcResultData.entry}\n` +
+        `• 손절가: ${calcResultData.stopLoss}\n` +
+        `• 목표가: ${calcResultData.takeProfit}\n` +
+        `--------------------\n` +
+        `• 손익비: ${calcResultData.rrRatio}\n` +
+        `• 손절시: ${calcResultData.slAmount}\n` +
+        `• 익절시: ${calcResultData.tpAmount}\n` +
+        `• 예상 청산가: ${calcResultData.liqPrice}`;
+
+    Kakao.API.request({
+        url: '/v2/api/talk/memo/default/send',
+        data: {
+            template_object: {
+                object_type: 'text',
+                text: textMsg,
+                link: {
+                    web_url: window.location.href,
+                    mobile_web_url: window.location.href,
+                },
+            },
+        },
+        success: function() {
+            alert('카카오톡 내 채팅방으로 매매 정보가 전송되었습니다!');
+        },
+        fail: function(error) {
+            alert('전송 실패: ' + JSON.stringify(error));
+        },
+    });
+}
+
+// 화면이 열리자마자 바로 계산 실행
+window.onload = function() {
+    calculate();
+    initKakao();
+};
+</script>
+</body>
+</html>
