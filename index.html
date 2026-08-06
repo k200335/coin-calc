@@ -222,6 +222,9 @@
 <script>
 let calcResultData = {};
 
+// 카카오 디벨로퍼스에서 새로 발급받은 JS Key를 넣어주세요.
+const KAKAO_JS_KEY = 'd2208aa43219860b96d70ef73ae6d4b3'; 
+
 function calculate() {
     const currency = document.getElementById('currency').value;
     const rate = parseFloat(document.getElementById('rate').value) || 0;
@@ -289,14 +292,9 @@ function calculate() {
     };
 }
 
-// 카카오 초기화 예외 처리
 function initKakao() {
-    try {
-        if (typeof Kakao !== 'undefined' && !Kakao.isInitialized()) {
-            Kakao.init('d2208aa43219860b96d70ef73ae6d4b3');
-        }
-    } catch (e) {
-        console.log("카카오 SDK 초기화 대기 중:", e);
+    if (typeof Kakao !== 'undefined' && !Kakao.isInitialized()) {
+        Kakao.init(KAKAO_JS_KEY);
     }
 }
 
@@ -315,7 +313,7 @@ function sendToKakao() {
                 executeSend();
             },
             fail: function(err) {
-                alert('카카오 로그인에 실패했습니다: ' + JSON.stringify(err));
+                alert('카카오 로그인 실패: ' + JSON.stringify(err));
             }
         });
     } else {
@@ -349,7 +347,7 @@ function executeSend() {
             },
         },
         success: function() {
-            alert('카카오톡 내 채팅방으로 매매 정보가 전송되었습니다!');
+            alert('카카오톡 나와의 채팅방으로 결과가 전송되었습니다!');
         },
         fail: function(error) {
             alert('전송 실패: ' + JSON.stringify(error));
@@ -357,7 +355,6 @@ function executeSend() {
     });
 }
 
-// 화면이 열리자마자 바로 계산 실행
 window.onload = function() {
     calculate();
     initKakao();
