@@ -225,11 +225,11 @@ let calcResultData = {};
 // 카카오 디벨로퍼스 Default JS Key
 const KAKAO_JS_KEY = 'd2208aa43219860b96d70ef73ae6d4b3'; 
 
-// 구글/실시간 시장 환율에 가장 가까운 오픈 환율 API 적용
+// 구글/유럽중앙은행(ECB) 기반 실시간 환율 API
 async function fetchExchangeRate() {
     try {
-        // primary: open.er-api.com (업데이트 주기가 빠르고 구글 환율과 매우 유사)
-        const response = await fetch('https://open.er-api.com/v6/latest/USD');
+        // Frankfurter API (유럽중앙은행 기반, 실시간성 매우 높음)
+        const response = await fetch('https://api.frankfurter.app/latest?from=USD&to=KRW');
         const data = await response.json();
         if (data && data.rates && data.rates.KRW) {
             const currentRate = data.rates.KRW.toFixed(2);
@@ -239,12 +239,11 @@ async function fetchExchangeRate() {
     } catch (error) {
         console.log('1차 환율 로드 실패, 대체 API 시도:', error);
         try {
-            // backup: cdn.jsdelivr.net 오픈 API
-            const bgResponse = await fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json');
+            // Backup: ExchangeRate-API (v4)
+            const bgResponse = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
             const bgData = await bgResponse.json();
-            if (bgData && bgData.usd && bgData.usd.krw) {
-                const currentRate = bgData.usd.krw.toFixed(2);
-                document.getElementById('rate').value = currentRate;
+            if (bgData && bgData.rates && bgData.rates.KRW) {
+                document.getElementById('rate').value = bgData.rates.KRW.toFixed(2);
                 calculate();
             }
         } catch (e) {
