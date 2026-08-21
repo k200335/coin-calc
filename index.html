@@ -137,7 +137,7 @@
             gap: 8px;
         }
 
-        /* 매매일지 모바일 열 너비 고정 최적화 */
+        /* 모바일 매매일지 테이블 최적화 */
         .table-responsive {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
@@ -151,29 +151,36 @@
             table-layout: fixed;
         }
         th, td {
-            padding: 6px 2px;
+            padding: 8px 3px;
             border-bottom: 1px solid var(--border-color);
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            vertical-align: middle;
         }
         th {
             background-color: var(--input-bg);
             color: #848e9c;
         }
         td input[type="text"] {
-            width: 95%;
-            padding: 6px 2px;
-            font-size: 0.82rem;
+            width: 100%;
+            padding: 6px 4px;
+            font-size: 0.8rem;
             text-align: center;
             box-sizing: border-box;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: #fff;
         }
         td input[type="date"] {
-            width: 98%;
-            padding: 6px 1px;
+            width: 100%;
+            padding: 5px 2px;
             font-size: 0.72rem;
             text-align: center;
             box-sizing: border-box;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: #fff;
         }
         .btn-save {
             width: 100%;
@@ -297,13 +304,13 @@
             <div class="table-responsive">
                 <table>
                     <colgroup>
-                        <col style="width: 50px;">
-                        <col style="width: 60px;">
-                        <col style="width: 70px;">
-                        <col style="width: 65px;">
-                        <col style="width: 85px;">
-                        <col style="width: 120px;"> <!-- 결과 열 폭 대폭 확대 -->
-                        <col style="width: 130px;"> <!-- 실행날짜 열 폭 확대 -->
+                        <col style="width: 45px;">  <!-- 차수 -->
+                        <col style="width: 60px;">  <!-- 원금 -->
+                        <col style="width: 65px;">  <!-- 누적 -->
+                        <col style="width: 60px;">  <!-- 수익 -->
+                        <col style="width: 85px;">  <!-- 예상날짜 -->
+                        <col style="width: 125px;"> <!-- 결과 (넓게 확보) -->
+                        <col style="width: 120px;"> <!-- 실행날짜 -->
                     </colgroup>
                     <thead>
                         <tr>
