@@ -137,7 +137,7 @@
             gap: 8px;
         }
 
-        /* 매매일지 모바일 전용 스타일 최적화 */
+        /* 매매일지 모바일 열 너비 고정 최적화 */
         .table-responsive {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
@@ -147,28 +147,33 @@
             border-collapse: collapse;
             font-size: 0.8rem;
             text-align: center;
-            min-width: 530px;
+            min-width: 580px;
+            table-layout: fixed;
         }
         th, td {
-            padding: 6px 3px;
+            padding: 6px 2px;
             border-bottom: 1px solid var(--border-color);
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         th {
             background-color: var(--input-bg);
             color: #848e9c;
         }
         td input[type="text"] {
-            width: 80px;
-            padding: 5px;
-            font-size: 0.8rem;
+            width: 95%;
+            padding: 6px 2px;
+            font-size: 0.82rem;
             text-align: center;
+            box-sizing: border-box;
         }
         td input[type="date"] {
-            width: 110px;
-            padding: 5px;
-            font-size: 0.75rem;
+            width: 98%;
+            padding: 6px 1px;
+            font-size: 0.72rem;
             text-align: center;
+            box-sizing: border-box;
         }
         .btn-save {
             width: 100%;
@@ -291,15 +296,24 @@
             <div class="card-title">일차별 수익 내역 (30일 목표)</div>
             <div class="table-responsive">
                 <table>
+                    <colgroup>
+                        <col style="width: 50px;">
+                        <col style="width: 60px;">
+                        <col style="width: 70px;">
+                        <col style="width: 65px;">
+                        <col style="width: 85px;">
+                        <col style="width: 120px;"> <!-- 결과 열 폭 대폭 확대 -->
+                        <col style="width: 130px;"> <!-- 실행날짜 열 폭 확대 -->
+                    </colgroup>
                     <thead>
                         <tr>
-                            <th style="width: 50px;">차수</th>
-                            <th style="width: 65px;">원금($)</th>
-                            <th style="width: 75px;">누적수익($)</th>
-                            <th style="width: 65px;">수익금($)</th>
-                            <th style="width: 85px;">예상날짜</th>
-                            <th style="width: 90px;">결과</th>
-                            <th style="width: 120px;">실행날짜</th>
+                            <th>차수</th>
+                            <th>원금($)</th>
+                            <th>누적($)</th>
+                            <th>수익($)</th>
+                            <th>예상날짜</th>
+                            <th>결과</th>
+                            <th>실행날짜</th>
                         </tr>
                     </thead>
                     <tbody id="journalBody">
