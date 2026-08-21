@@ -137,10 +137,11 @@
             gap: 8px;
         }
 
-        /* 모바일 매매일지 테이블 최적화 */
+        /* 매매일지 모바일 열 너비 고정 최적화 */
         .table-responsive {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
+            max-height: 600px; /* 360일차 표 스크롤 고정 */
         }
         table {
             width: 100%;
@@ -159,6 +160,9 @@
         th {
             background-color: var(--input-bg);
             color: #848e9c;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
         td input[type="text"] {
             width: 100%;
@@ -191,7 +195,7 @@
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            margin-top: 10px;
+            margin-bottom: 12px;
         }
     </style>
 </head>
@@ -300,16 +304,20 @@
         </div>
 
         <div class="card">
-            <div class="card-title">일차별 수익 내역 (30일 목표)</div>
+            <div class="card-title">일차별 수익 내역 (360일 목표)</div>
+            
+            <!-- 클라우드 저장 버튼 위치 상단으로 이동 -->
+            <button class="btn-save" onclick="saveJournalData()">☁️ 구글 클라우드에 저장하기</button>
+
             <div class="table-responsive">
                 <table>
                     <colgroup>
-                        <col style="width: 45px;">  <!-- 차수 -->
-                        <col style="width: 60px;">  <!-- 원금 -->
-                        <col style="width: 65px;">  <!-- 누적 -->
-                        <col style="width: 60px;">  <!-- 수익 -->
+                        <col style="width: 50px;">  <!-- 차수 -->
+                        <col style="width: 75px;">  <!-- 원금 -->
+                        <col style="width: 80px;">  <!-- 누적 -->
+                        <col style="width: 75px;">  <!-- 수익 -->
                         <col style="width: 85px;">  <!-- 예상날짜 -->
-                        <col style="width: 125px;"> <!-- 결과 (넓게 확보) -->
+                        <col style="width: 125px;"> <!-- 결과 -->
                         <col style="width: 120px;"> <!-- 실행날짜 -->
                     </colgroup>
                     <thead>
@@ -327,7 +335,6 @@
                     </tbody>
                 </table>
             </div>
-            <button class="btn-save" onclick="saveJournalData()">☁️ 구글 클라우드에 저장하기</button>
         </div>
     </div>
 </div>
@@ -444,6 +451,7 @@ function loadAndRenderJournal() {
     });
 }
 
+// 1일차부터 360일차까지 동적 생성
 function renderJournal() {
     const startCapital = parseFloat(document.getElementById('startCapital').value) || 24.91;
     const targetRate = (parseFloat(document.getElementById('targetRate').value) || 3) / 100;
@@ -453,7 +461,7 @@ function renderJournal() {
     let html = '';
     let currentCapital = startCapital;
 
-    for (let day = 1; day <= 30; day++) {
+    for (let day = 1; day <= 360; day++) {
         let nextCapital = currentCapital * (1 + targetRate);
         let profitDollar = nextCapital - currentCapital;
 
@@ -467,9 +475,9 @@ function renderJournal() {
         html += `
             <tr>
                 <td><b>${day}일차</b></td>
-                <td>${currentCapital.toFixed(2)}</td>
-                <td>${nextCapital.toFixed(2)}</td>
-                <td class="val-green">+${profitDollar.toFixed(2)}</td>
+                <td>${currentCapital.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td>${nextCapital.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td class="val-green">+${profitDollar.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
                 <td>${dateStr}</td>
                 <td><input type="text" id="res_${day}" value="${savedResult}" placeholder="결과"></td>
                 <td><input type="date" id="date_${day}" value="${savedExecDate}"></td>
@@ -482,7 +490,7 @@ function renderJournal() {
 
 function saveJournalData() {
     const journalData = {};
-    for (let day = 1; day <= 30; day++) {
+    for (let day = 1; day <= 360; day++) {
         const resultVal = document.getElementById(`res_${day}`).value;
         const execDateVal = document.getElementById(`date_${day}`).value;
         journalData[day] = { result: resultVal, execDate: execDateVal };
